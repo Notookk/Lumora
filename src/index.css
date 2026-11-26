@@ -354,7 +354,7 @@ input, textarea, .settings-content, .ai-messages { user-select: text; }
   z-index: 1;
   width: 100%;
   height: 46px;
-  padding: 0 56px 0 12px;
+  padding: 0 56px 0 8px;
   display: flex;
   align-items: center;
   border: 0;
@@ -367,13 +367,16 @@ input, textarea, .settings-content, .ai-messages { user-select: text; }
   content: '';
   position: absolute;
   z-index: -1;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: calc(var(--rail-collapsed-width) - 12px);
   border: 1px solid transparent;
   border-radius: 12px;
   background: linear-gradient(110deg, rgba(185, 220, 255, 0.11), rgba(255, 255, 255, 0.035));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
   opacity: 0;
-  transition: opacity 0.22s var(--ease-spring);
+  transition: width 0.38s var(--ease-spring), opacity 0.22s var(--ease-spring);
 }
 .tab-row.is-active .tab-main::before {
   border-color: rgba(185, 220, 255, 0.14);
@@ -383,6 +386,8 @@ input, textarea, .settings-content, .ai-messages { user-select: text; }
 }
 .tab-rail:hover .tab-main,
 .tab-rail:focus-within .tab-main { pointer-events: auto; }
+.tab-rail:hover .tab-main::before,
+.tab-rail:focus-within .tab-main::before { width: 100%; }
 .tab-row:hover .tab-main::before { opacity: 1; }
 .active-tab-indicator {
   position: absolute;

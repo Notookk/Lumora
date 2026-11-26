@@ -122,6 +122,7 @@ try {
       railHeight: Math.round(rail.height),
       railTop: Math.round(rail.top),
       railBottom: Math.round(rail.bottom),
+      activeHighlightWidth: Math.round(parseFloat(getComputedStyle(document.querySelector('.tab-row.is-active .tab-main'), '::before').width)),
       searchWidth: Math.round(document.querySelector('.search-bar').getBoundingClientRect().width),
       hero: document.querySelector('.hero-wordmark')?.textContent,
       mochi: Boolean(document.querySelector('.mochi-avatar')),
@@ -131,6 +132,7 @@ try {
   })()`);
   if (initial.tabRows !== 4 || initial.railDisplay === 'none') throw new Error(`Desktop tab rail check failed: ${JSON.stringify(initial)}`);
   if (initial.railWidth !== 56 || initial.railHeight > initial.height * 0.65) throw new Error(`Collapsed rail geometry is invalid: ${JSON.stringify(initial)}`);
+  if (initial.activeHighlightWidth !== 44) throw new Error(`Collapsed active highlight escapes the rail: ${JSON.stringify(initial)}`);
   if (initial.railTop < 0 || initial.railBottom > initial.height) throw new Error('Tab rail extends beyond the viewport.');
   if (initial.overflow) throw new Error('Desktop layout has horizontal overflow.');
 
@@ -138,7 +140,9 @@ try {
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...railTarget });
   await delay(450);
   const expandedOpacity = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
+  const expandedActiveWidth = await evaluate(`Math.round(parseFloat(getComputedStyle(document.querySelector('.tab-row.is-active .tab-main'), '::before').width))`);
   if (Number(expandedOpacity) < 0.9) throw new Error(`Tab rail did not expand: ${expandedOpacity}`);
+  if (expandedActiveWidth !== 236) throw new Error(`Expanded active highlight is invalid: ${expandedActiveWidth}px`);
 
   const rowGap = await evaluate(`(() => { const rows = [...document.querySelectorAll('.tab-row')]; const first = rows[0].getBoundingClientRect(); const second = rows[1].getBoundingClientRect(); return { x: first.left + 130, y: (first.bottom + second.top) / 2 }; })()`);
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...rowGap });
@@ -158,7 +162,9 @@ try {
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 700, y: 420 });
   await delay(450);
   const collapsedOpacity = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
+  const collapsedActiveWidth = await evaluate(`Math.round(parseFloat(getComputedStyle(document.querySelector('.tab-row.is-active .tab-main'), '::before').width))`);
   if (Number(collapsedOpacity) > 0.1) throw new Error('Rail did not collapse after the pointer left.');
+  if (collapsedActiveWidth !== 44) throw new Error(`Collapsed active highlight escaped after hover: ${collapsedActiveWidth}px`);
   await evaluate(`document.querySelector('.tab-main').focus()`);
   await delay(350);
   const keyboardExpanded = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
@@ -242,7 +248,7 @@ try {
   await click('[aria-label="Do Not Disturb"]');
   if (exceptions.length) throw new Error(`Browser exceptions: ${exceptions.join(' | ')}`);
 
-  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, gapHoverPersistent: gapHover.hovering, keyboardExpanded: Number(keyboardExpanded) >= 0.9, tabletRail, compactRailDisplay, settingsOpen, idleMochiHidden, notificationState, clearedMochiHidden, dismissedMochiHidden, idleDndHidden, dndNotificationState, browserExceptions: exceptions.length }, null, 2));
+  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, expandedActiveWidth, collapsedActiveWidth, gapHoverPersistent: gapHover.hovering, keyboardExpanded: Number(keyboardExpanded) >= 0.9, tabletRail, compactRailDisplay, settingsOpen, idleMochiHidden, notificationState, clearedMochiHidden, dismissedMochiHidden, idleDndHidden, dndNotificationState, browserExceptions: exceptions.length }, null, 2));
 } finally {
   try { socket?.close(); } catch {}
   child.kill();
