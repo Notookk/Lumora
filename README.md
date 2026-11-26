@@ -212,38 +212,6 @@ See [PRIVACY.md](PRIVACY.md) for the full policy.
 
 To delete local data, use **Settings → Reset**, remove uploaded wallpapers with **Remove**, or uninstall the extension. API providers retain data according to their own policies.
 
-## Architecture
-
-```text
-Lumora/
-├── manifest.json                 # Manifest V3 entry point
-├── vite.config.ts                # New-tab, worker, and bridge build inputs
-├── public/
-│   ├── icons/                    # Original SVG and PNG extension icons
-│   ├── wallpapers/               # Local wallpaper and noise overlay
-│   └── fonts/                    # Locally bundled Inter and Michroma
-├── scripts/
-│   ├── prepare-assets.mjs        # Asset preparation
-│   ├── validate-extension.mjs    # Built extension validation
-│   ├── validate-source.mjs       # Strict source checks
-│   ├── smoke-ui.mjs              # Headless desktop browser smoke test
-│   └── package.mjs               # Chrome Web Store ZIP creation
-├── src/
-│   ├── background/               # MV3 module service worker
-│   ├── content/                  # Isolated-world media bridge
-│   ├── components/               # React interface components
-│   ├── data/                     # Curated site catalog
-│   ├── lib/                      # Browser, storage, weather, Gemini, and hooks
-│   ├── store/                    # Zustand settings store
-│   ├── types/                    # Shared strict TypeScript types
-│   ├── App.tsx
-│   ├── index.css
-│   └── main.tsx
-├── docs/assets/                  # Banner and screenshots
-├── dist/                         # Generated load-unpacked extension
-└── release/                      # Generated store ZIP
-```
-
 ### Runtime flow
 
 1. The service worker tracks browser tabs and in-memory media sessions.
