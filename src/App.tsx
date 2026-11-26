@@ -105,7 +105,7 @@ export default function App() {
       <VerticalTabRail tabs={tabs} />
       <BottomDock sessions={sessions} onRefreshMedia={refreshMedia} onOpenSettings={() => openSettings('sites')} />
 
-      <div className={`utility-controls ${settings.mochiEnabled ? '' : 'mochi-off'}`}>
+      <div className={`utility-controls ${settings.mochiEnabled && items.length > 0 ? '' : 'mochi-off'}`}>
         {settings.aiEnabled && (
           <button type="button" className="utility-button glass-panel" onClick={() => setAiOpen(true)} aria-label="Open AI sidebar" title="Open AI sidebar (Alt + L)">
             <Sparkles size={16} strokeWidth={1.5} />

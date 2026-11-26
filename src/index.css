@@ -603,11 +603,11 @@ input, textarea, .settings-content, .ai-messages { user-select: text; }
 .utility-button { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: rgba(226, 240, 252, 0.66); }
 .utility-button:hover { color: #fff; transform: translateY(-1px); }
 
-.mochi-panel { position: fixed; z-index: 30; top: 15px; right: 20px; width: 310px; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; animation: mochi-in 0.9s 0.34s var(--ease-spring) both; }
-.mochi-trigger { position: relative; width: 84px; height: 78px; padding: 0; border: 0; background: transparent; pointer-events: auto; }
-.mochi-avatar { position: relative; width: 84px; height: 78px; display: grid; place-items: center; --glow-rgb: 185, 220, 255; }
-.mochi-avatar svg { position: relative; z-index: 1; width: 82px; height: 77px; overflow: visible; }
-.mochi-halo { position: absolute; inset: -12px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--glow-rgb), 0.22), rgba(var(--glow-rgb), 0.06) 42%, transparent 72%); filter: blur(5px); animation: halo-breathe 3.8s ease-in-out infinite; }
+.mochi-panel { position: fixed; z-index: 30; top: 18px; right: 20px; width: 310px; display: flex; flex-direction: column; align-items: flex-end; pointer-events: none; }
+.mochi-trigger { position: relative; width: 52px; height: 48px; padding: 0; border: 0; background: transparent; pointer-events: auto; animation: mochi-in 0.42s var(--ease-spring) both; }
+.mochi-avatar { position: relative; width: 48px; height: 44px; display: grid; place-items: center; --glow-rgb: 185, 220, 255; }
+.mochi-avatar svg { position: relative; z-index: 1; width: 46px; height: 43px; overflow: visible; }
+.mochi-halo { position: absolute; inset: -8px; border-radius: 50%; background: radial-gradient(circle, rgba(var(--glow-rgb), 0.22), rgba(var(--glow-rgb), 0.06) 42%, transparent 72%); filter: blur(4px); animation: halo-breathe 3.8s ease-in-out infinite; }
 .mochi-pupils { transition: transform 0.12s linear; }
 .mochi-avatar.is-celebrating { animation: mochi-bounce 0.8s var(--ease-spring); }
 .mochi-avatar.is-celebrating .mochi-halo { background: radial-gradient(circle, rgba(var(--glow-rgb), 0.4), rgba(var(--glow-rgb), 0.1) 45%, transparent 72%); }
@@ -615,8 +615,8 @@ input, textarea, .settings-content, .ai-messages { user-select: text; }
 .glow-pearl { --glow-rgb: 255, 224, 196; }
 .glow-mint { --glow-rgb: 173, 235, 211; }
 .glow-lavender { --glow-rgb: 211, 194, 244; }
-.mochi-badge { position: absolute; z-index: 2; top: 7px; right: 3px; min-width: 19px; height: 19px; padding: 0 5px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.34); border-radius: 999px; background: #d9efff; color: #112235; font-size: 9px; font-weight: 700; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); }
-.notification-stack { width: 100%; padding-top: 7px; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
+.mochi-badge { position: absolute; z-index: 2; top: 1px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; display: grid; place-items: center; border: 1px solid rgba(255, 255, 255, 0.34); border-radius: 999px; background: #d9efff; color: #112235; font-size: 8px; font-weight: 700; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3); }
+.notification-stack { width: 100%; padding-top: 4px; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
 .notification-stack-header { height: 24px; padding: 0 8px 0 12px; display: flex; align-items: center; justify-content: space-between; color: rgba(221, 238, 252, 0.52); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; }
 .notification-stack-header > span { display: flex; align-items: center; gap: 7px; }
 .notification-stack-header i { width: 5px; height: 5px; border-radius: 50%; background: #b9dcff; box-shadow: 0 0 9px rgba(185, 220, 255, 0.8); }
@@ -799,12 +799,12 @@ a:focus-visible { outline: 2px solid rgba(185, 220, 255, 0.68); outline-offset: 
 @keyframes hero-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 14px)); } to { opacity: 1; transform: translate(-50%, -50%); } }
 @keyframes rail-in { from { opacity: 0; transform: translate(-12px, -50%); } to { opacity: 1; transform: translate(0, -50%); } }
 @keyframes dock-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
-@keyframes mochi-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mochi-in { from { opacity: 0; transform: translateY(-6px) scale(0.88); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes popover-in { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes notification-in { from { opacity: 0; transform: translateY(-9px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes notification-out { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(12px) scale(0.97); } }
 @keyframes halo-breathe { 0%, 100% { opacity: 0.68; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.06); } }
-@keyframes mochi-bounce { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-8px) scale(1.035, 0.97); } 65% { transform: translateY(2px) scale(0.98, 1.03); } }
+@keyframes mochi-bounce { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-4px) scale(1.035, 0.97); } 65% { transform: translateY(1px) scale(0.98, 1.03); } }
 @keyframes visualize { from { transform: scaleY(0.3); opacity: 0.55; } to { transform: scaleY(1); opacity: 1; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes drawer-in { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
@@ -822,8 +822,8 @@ a:focus-visible { outline: 2px solid rgba(185, 220, 255, 0.68); outline-offset: 
   .utility-controls { top: 92px; right: 18px; }
   .utility-controls.mochi-off { top: 18px; }
   .mochi-panel { top: 12px; right: 12px; width: 250px; }
-  .mochi-trigger, .mochi-avatar { width: 72px; height: 68px; }
-  .mochi-avatar svg { width: 70px; height: 66px; }
+  .mochi-trigger, .mochi-avatar { width: 44px; height: 40px; }
+  .mochi-avatar svg { width: 42px; height: 39px; }
   .tab-rail { display: none; }
   .hero-display { top: 46%; width: 92vw; }
   .hero-wordmark { font-size: clamp(32px, 9vw, 58px); letter-spacing: 0.22em; padding-left: 0.22em; }

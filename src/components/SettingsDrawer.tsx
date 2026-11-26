@@ -310,7 +310,7 @@ export default function SettingsDrawer({
 
           {tab === 'mochi' && (
             <>
-              <SettingSection title="Companion" description="A small, original squircle companion inspired by the warmth of Coucou.">
+              <SettingSection title="Companion" description="A compact original squircle that appears only when a notification arrives.">
                 <SettingRow title="Enable Mochi & notifications"><Toggle checked={settings.mochiEnabled} onChange={(value) => void updateSettings({ mochiEnabled: value })} label="Enable Mochi and notifications" /></SettingRow>
                 <SettingRow title="Do Not Disturb" description="Mochi sleeps and the notification stack stays hidden."><Toggle checked={settings.doNotDisturb} onChange={(value) => void updateSettings({ doNotDisturb: value })} label="Do Not Disturb" /></SettingRow>
                 <div className="field-label">Glow color

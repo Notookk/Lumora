@@ -28,7 +28,11 @@ export default function MochiNotifications({
     return () => window.clearTimeout(timer);
   }, [activeItems[0]?.id]);
 
-  if (!settings.mochiEnabled) return null;
+  useEffect(() => {
+    if (!items.length) setExpanded(true);
+  }, [items.length]);
+
+  if (!settings.mochiEnabled || !items.length) return null;
 
   return (
     <aside className={`mochi-panel ${settings.doNotDisturb ? 'is-dnd' : ''}`} aria-label="Mochi notifications">
@@ -36,7 +40,7 @@ export default function MochiNotifications({
         <MochiAvatar glow={settings.mochiGlow} doNotDisturb={settings.doNotDisturb} celebrating={celebrating} />
         {activeItems.length > 0 && !expanded && <span className="mochi-badge">{activeItems.length}</span>}
       </button>
-      {expanded && !settings.doNotDisturb && activeItems.length > 0 && (
+      {expanded && !settings.doNotDisturb && (
         <div className="notification-stack">
           <div className="notification-stack-header">
             <span><i /> Mochi</span>

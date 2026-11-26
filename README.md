@@ -26,6 +26,10 @@ No LUMORA backend, account, analytics, or telemetry is used.
   <img src="docs/assets/lumora-desktop.png" alt="LUMORA desktop new-tab preview" width="100%">
 </p>
 
+<p align="center">
+  <img src="docs/assets/lumora-notification.png" alt="LUMORA compact Mochi companion and notification stack" width="100%">
+</p>
+
 <details>
   <summary>Compact layout and settings</summary>
   <p align="center">
@@ -76,7 +80,7 @@ No LUMORA backend, account, analytics, or telemetry is used.
 
 ### Mochi notifications
 
-- Original animated SVG companion with cursor-following eyes.
+- Compact original animated SVG companion that appears only while notifications are present.
 - Random natural blinking and notification celebration motion.
 - Ice Blue, Warm Pearl, Soft Mint, and Lavender glow presets.
 - Maximum three-card FIFO queue with animated removal.
@@ -257,7 +261,7 @@ npm run build       # Production build and extension validation
 npm run smoke:ui    # Optional 1440×900 headless browser test
 ```
 
-The smoke test requires the Vite dev server to be running and an installed Chrome or Edge executable. Set `LUMORA_BROWSER` if the browser is installed in a nonstandard location. It verifies the desktop tab rail, settings drawer, viewport overflow, and runtime exceptions, and saves a preview to `docs/assets/lumora-desktop.png`.
+The smoke test requires the Vite dev server to be running and an installed Chrome or Edge executable. Set `LUMORA_BROWSER` if the browser is installed in a nonstandard location. It verifies the desktop tab rail, settings drawer, viewport overflow, Mochi notification lifecycle, and runtime exceptions, and saves previews to `docs/assets/lumora-desktop.png` and `docs/assets/lumora-notification.png`.
 
 ## Browser behavior
 

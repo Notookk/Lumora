@@ -93,6 +93,12 @@ try {
     await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...rect, button: 'left', clickCount: 1 });
     await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...rect, button: 'left', clickCount: 1 });
   };
+  const openMochiSettings = async () => {
+    if (!await evaluate(`Boolean(document.querySelector('.settings-drawer'))`)) await click('.utility-controls button:last-child');
+    await delay(250);
+    await click('.settings-tabs button:nth-child(4)');
+    await delay(250);
+  };
 
   await send('Page.enable');
   await send('Runtime.enable');
@@ -178,9 +184,65 @@ try {
   await delay(350);
   const settingsOpen = await evaluate(`Boolean(document.querySelector('.settings-drawer'))`);
   if (!settingsOpen) throw new Error('Settings drawer did not open.');
+  const idleMochiHidden = await evaluate(`!document.querySelector('.mochi-panel') && document.querySelector('.utility-controls').classList.contains('mochi-off')`);
+  if (!idleMochiHidden) throw new Error('Mochi should be hidden while idle.');
+
+  await openMochiSettings();
+  for (let index = 0; index < 4; index += 1) {
+    await click('.button-row .primary-button');
+    await delay(90);
+  }
+  await delay(400);
+  const notificationState = await evaluate(`(() => {
+    const avatar = document.querySelector('.mochi-avatar')?.getBoundingClientRect();
+    return {
+      visible: Boolean(document.querySelector('.mochi-panel')),
+      avatarWidth: avatar ? Math.round(avatar.width) : 0,
+      avatarHeight: avatar ? Math.round(avatar.height) : 0,
+      activeCards: document.querySelectorAll('.notification-card:not(.is-exiting)').length,
+      controlsReleased: !document.querySelector('.utility-controls').classList.contains('mochi-off'),
+    };
+  })()`);
+  if (!notificationState.visible || notificationState.avatarWidth !== 48 || notificationState.avatarHeight !== 44) throw new Error(`Compact Mochi state is invalid: ${JSON.stringify(notificationState)}`);
+  if (notificationState.activeCards !== 3 || !notificationState.controlsReleased) throw new Error(`Notification FIFO state is invalid: ${JSON.stringify(notificationState)}`);
+
+  await click('.settings-header .icon-button');
+  await delay(350);
+  const notificationScreenshot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
+  await writeFile(resolve(root, 'docs/assets/lumora-notification.png'), Buffer.from(notificationScreenshot.data, 'base64'));
+  await click('.notification-stack-header .icon-button');
+  await delay(400);
+  const clearedMochiHidden = await evaluate(`!document.querySelector('.mochi-panel') && document.querySelector('.utility-controls').classList.contains('mochi-off')`);
+  if (!clearedMochiHidden) throw new Error('Mochi did not hide after clearing notifications.');
+
+  await openMochiSettings();
+  await click('.button-row .primary-button');
+  await delay(250);
+  await click('.settings-header .icon-button');
+  await delay(250);
+  await click('[aria-label="Dismiss notification"]');
+  await delay(400);
+  const dismissedMochiHidden = await evaluate(`!document.querySelector('.mochi-panel')`);
+  if (!dismissedMochiHidden) throw new Error('Mochi did not hide after dismissing the last notification.');
+
+  await openMochiSettings();
+  await click('[aria-label="Do Not Disturb"]');
+  await delay(150);
+  await click('.settings-header .icon-button');
+  await delay(250);
+  const idleDndHidden = await evaluate(`!document.querySelector('.mochi-panel')`);
+  if (!idleDndHidden) throw new Error('Mochi should stay hidden in Do Not Disturb mode while idle.');
+  await openMochiSettings();
+  await click('.button-row .primary-button');
+  await delay(250);
+  const dndNotificationState = await evaluate(`({ visible: Boolean(document.querySelector('.mochi-panel.is-dnd')), sleeping: Boolean(document.querySelector('.mochi-avatar.is-sleepy')), cards: document.querySelectorAll('.notification-card').length })`);
+  if (!dndNotificationState.visible || !dndNotificationState.sleeping || dndNotificationState.cards !== 0) throw new Error(`Do Not Disturb notification state is invalid: ${JSON.stringify(dndNotificationState)}`);
+  await click('.button-row .secondary-button');
+  await delay(400);
+  await click('[aria-label="Do Not Disturb"]');
   if (exceptions.length) throw new Error(`Browser exceptions: ${exceptions.join(' | ')}`);
 
-  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, gapHoverPersistent: gapHover.hovering, keyboardExpanded: Number(keyboardExpanded) >= 0.9, tabletRail, compactRailDisplay, settingsOpen, browserExceptions: exceptions.length }, null, 2));
+  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, gapHoverPersistent: gapHover.hovering, keyboardExpanded: Number(keyboardExpanded) >= 0.9, tabletRail, compactRailDisplay, settingsOpen, idleMochiHidden, notificationState, clearedMochiHidden, dismissedMochiHidden, idleDndHidden, dndNotificationState, browserExceptions: exceptions.length }, null, 2));
 } finally {
   try { socket?.close(); } catch {}
   child.kill();
