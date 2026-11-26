@@ -1,0 +1,147 @@
+# MASTER PROMPT: LUMORA — Flagship Glassmorphic New Tab Extension (Manifest V3)
+
+## 1. PROJECT IDENTITY & ENGINEERING MANDATE
+- **Project / Extension Name**: **LUMORA** (`package.json` name: `lumora-newtab`, manifest name: `LUMORA`)
+- **Role**: Act as a Principal Frontend Architect and Apple visionOS / macOS Interface Designer. Build **LUMORA**, a production-ready Chrome Extension (Manifest V3) that overrides the New Tab page (`chrome_url_overrides.newtab`).
+- **Core Goal**: Create a serene, atmospheric, ultra-responsive browser workspace that feels like a native OS layer—never a web template.
+
+### Strict Anti-Slop Rules (Non-Negotiable)
+- **Zero AI-Slop Aesthetics**: No generic SaaS cards, no loud purple/pink neon gradients, no default Tailwind `bg-slate-900` boxes, no emojis as UI icons (use crisp 1.5px stroke `lucide-react` icons and custom inline SVGs only), and no visual clutter.
+- **Native Glass Physics**: Every floating surface must use layered optical glass:
+  - Base fill: `rgba(12, 18, 32, 0.42)` to `rgba(18, 26, 44, 0.55)`
+  - Backdrop: `backdrop-filter: blur(24px) saturate(165%)`
+  - Specular edge: `1px solid rgba(255, 255, 255, 0.14)` with a subtle top inner highlight `inset 0 1px 0 rgba(255, 255, 255, 0.12)`
+  - Depth: Soft ambient shadow `0 16px 40px -12px rgba(0, 0, 0, 0.55)`
+- **Motion Craft**: All animations must be GPU-composited (`transform`, `opacity` only) at 60fps using spring-like easing (`cubic-bezier(0.22, 1, 0.36, 1)`). Zero jank, zero layout shift on load.
+- **Zero Slop Code**: Strongly-typed **React 18 + TypeScript + Vite + Tailwind CSS**. Clean, modular architecture with zero `// TODO` stubs, zero dead buttons, and full Manifest V3 CSP compliance (no inline scripts, no `eval`).
+
+---
+
+## 2. SPATIAL ARCHITECTURE & COMPONENT SPECIFICATIONS
+Full-bleed viewport (`100vw × 100vh`, `overflow: hidden`, `user-select: none` on chrome UI) with a strict z-index hierarchy:
+- `z-0`: Atmospheric Wallpaper + Vignette + optional 2% subtle noise grain
+- `z-10`: Centerpiece Hero (`LUMORA` / Auto-Day + live telemetry)
+- `z-20`: Top Search Bar, Left Vertical Tab Rail, Bottom Dual Chips
+- `z-30`: Expanded Chip Popovers (Media Player, Starred Sites Grid), Mochi Notification Panel
+- `z-40`: Optional AI Chat Sidebar
+- `z-50`: Settings Slide-Over Drawer
+
+### A. Atmospheric Background Engine
+- Default: High-resolution deep midnight cloudscape wallpaper bundled locally in `public/wallpapers/default-clouds.webp` (instant first paint, zero network delay).
+- Customization: Users can switch presets, paste an image URL, or upload a local image (stored in IndexedDB to avoid `chrome.storage.local` quota limits), plus adjust background dim/vignette and glass blur intensity.
+
+### B. Top-Center Frosted Search Bar
+- Positioned at `top: 16px`, horizontally centered (`width: min(460px, 90vw)`, `height: 44px`).
+- Styled as a sleek dark-navy frosted pill matching the reference aesthetic: subtle magnifying glass icon on the left, clean placeholder (`Search or enter address`), soft inner glow on focus, and `/` keyboard shortcut to focus immediately.
+- Smart routing: Detects valid URLs/domains and navigates directly; otherwise queries the user's chosen search engine (Google, DuckDuckGo, Perplexity, Bing).
+
+### C. Centerpiece Hero (`LUMORA` & Auto-Day Engine)
+- **Exact Typography**: Replicate the futuristic geometric stencil display style (disconnected horizontal bars on `E`, angular geometric `A`/`M`/`U`). Bundle **Anurati** (or **Aquire**) locally in `public/fonts/` via `@font-face` with `font-display: block` so there is zero font-swap flash. Uppercase with wide tracking (`letter-spacing: 0.32em`), subtle luminous text-shadow `0 0 28px rgba(180, 215, 255, 0.25)`.
+- **Dual Mode (User-Configurable)**:
+  1. **Custom Brand/Name Mode (Default)**: Displays **`LUMORA`** out of the box. Users can type any custom word or name in Settings and see it update live.
+  2. **Auto-Day Mode**: Automatically reads the user's local system clock and renders the current weekday (`MONDAY`, `TUESDAY`, `WEDNESDAY`, `THURSDAY`, `FRIDAY`, `SATURDAY`, `SUNDAY`) in the exact same geometric display font, automatically rolling over at local midnight without requiring a refresh.
+- **Micro-Telemetry Row**: Positioned cleanly beneath the hero wordmark in a crisp, low-opacity geometric sans (`Inter` / `SF Pro`): live local time (`HH:MM`, 12h/24h toggle), formatted date, and live weather pill (temperature + condition icon) when weather is enabled.
+
+### D. Left-Edge Vertical Tab Rail (Apple / Arc UI)
+- Floating translucent glass rail anchored to the left edge (`left: 12px`, vertically centered or full-height inset `top: 12px; bottom: 12px`, `border-radius: 16px`).
+- **Collapsed State**: `52px` wide showing crisp tab favicons, a glowing active-tab indicator pill on the left edge, and a subtle speaker dot on tabs playing audio.
+- **Hover-Expanded State**: Smoothly expands to `240px` revealing truncated tab titles, hover close (`×`) button, middle-click to close, drag/scroll support for many tabs, and a pinned `+` New Tab button at the bottom.
+- **Live Sync**: Subscribes to `chrome.tabs.onCreated`, `onRemoved`, `onUpdated`, `onActivated`, and `onMoved` so the rail stays instantaneously synchronized with the browser window.
+
+### E. Bottom-Center Dual Interactive Glass Chips
+Two compact, matching frosted-glass pills anchored at `bottom: 24px`, centered horizontally with a `12px` gap:
+
+1. **Transparent Now-Playing / Media Chip**
+   - **Browser-Wide Media Detection**: Uses `chrome.tabs.query({ audible: true })` combined with a lightweight content script (`mediaBridge.ts`) that inspects HTML5 `<video>`/`<audio>` elements and `navigator.mediaSession.metadata` across open tabs (YouTube, Spotify Web, Twitch, SoundCloud, etc.).
+   - **Collapsed Chip**: Compact pill displaying a smooth 3-bar CSS audio visualizer + truncated media/tab title (or a subtle idle state `No Media` / auto-hide option when nothing is playing).
+   - **Hover / Active Popover**: Smoothly expands upward into a transparent glass mini-player card (`width: 300px`) showing:
+     - Artwork/favicon, media title, and source domain
+     - Working **Play / Pause** toggle (relayed to the media tab via background service worker)
+     - **Mute / Unmute** toggle (`chrome.tabs.update(tabId, { muted })`)
+     - **Jump to Tab** button (`chrome.tabs.update(tabId, { active: true })`)
+     - If multiple audible tabs exist, subtle `< >` arrows to cycle between them.
+
+2. **Starred Sites Chip**
+   - **Collapsed Chip**: Compact glass pill with a crisp star icon and `Starred` label.
+   - **Hover or Click Popover**: Smoothly opens a frosted-glass floating grid above the chip displaying the user's active starred sites with crisp brand logos and clean labels.
+   - **Built-In Curated Famous Sites Catalog**: Pre-bundle clean monochrome/brand SVG logos for all major platforms so users can toggle them on/off with one click in Settings:
+     - *YouTube, GitHub, ChatGPT, Claude, Gemini, Gmail, X (Twitter), Reddit, Spotify, Netflix, Notion, Figma, LinkedIn, Twitch, Discord, Instagram, WhatsApp Web, Amazon, Stack Overflow, Vercel.*
+   - **Custom Sites**: Users can also add any custom site (Name + URL, auto-fetching high-res favicon with clean letter-monogram fallback).
+
+---
+
+## 3. SIGNATURE FEATURE: COUCOU ("MOCHI") NOTIFICATION PANEL (TOP-RIGHT)
+Anchored at `top: 18px; right: 20px`. This is LUMORA's signature delight element and must be engineered with obsessive polish:
+
+- **The Mochi Companion (`MochiAvatar.tsx`)**:
+  - Custom animated SVG character inspired by **Coucou's Mochi**: a soft, pillowy luminous white/translucent squircle-mochi silhouette with expressive dark oval eyes and subtle rosy cheeks (optional/minimal).
+  - **Signature Glow**: Emits a soft, breathing ambient halo (`radial-gradient` + layered SVG Gaussian blur + matching `drop-shadow`) that gently pulses at idle and flares warmly when a new notification arrives. User can customize the glow tint (Ice Blue default, Warm Pearl, Soft Mint, Lavender).
+  - **Alive Micro-Behaviors**:
+    - Eyes smoothly track the user's cursor across the viewport (clamped naturally within the face bounds).
+    - Natural randomized blink cycle every 3–6 seconds.
+    - Happy subtle bounce + peek animation when a new notification enters.
+    - Sleepy/closed-eyes state when Do Not Disturb is active.
+- **Glassy Notification Stack**:
+  - Mochi sits perched cleanly on top of the frosted-glass notification stack (overlapping the top edge slightly like a companion peeking over the glass).
+  - **Strict 3-Notification FIFO Queue**:
+    - Displays a **maximum of 3 notifications** beneath Mochi at any time.
+    - When a 4th notification arrives, the oldest (bottom) card smoothly fades and slides downward out of the DOM while the new card glides in at the top.
+    - Each card displays: source icon, bold title, concise 1-line body, relative timestamp, and hover-to-dismiss `×`.
+  - **Real Event Hooks + Demo Trigger**:
+    - Hooks into `chrome.downloads.onChanged` (notifies when a file finishes downloading), internal Lumora alerts (e.g., Pomodoro/quick reminder or API status), and a clean **"Send Test Notification"** button in Settings so users can immediately test Mochi's glow and FIFO queue.
+  - **Full User Control**: Users can toggle the entire Mochi + Notification Panel **ON / OFF**, toggle Do Not Disturb, or clear all notifications in one click.
+
+---
+
+## 4. OPTIONAL AI CHAT SIDEBAR & MULTI-API HUB
+A minimal, low-opacity gear icon (top-right, cleanly aligned beside Mochi's control area) opens the glassmorphic **LUMORA Settings Drawer** with 4 organized tabs:
+
+1. **General & Appearance**:
+   - Hero Mode toggle: `Custom Text` (default: `LUMORA`) vs. `Auto-Day (Local Time)`
+   - Custom Hero Text input
+   - Search Engine selector
+   - Wallpaper selector / custom upload / blur & dim sliders
+   - 12h / 24h clock format
+2. **APIs & AI Sidebar**:
+   - **Gemini API Integration (Free Tier)**: Secure local input field for the user's Google Gemini API key (`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse`) + master **Enable / Disable AI Sidebar** toggle.
+   - **AI Chat Sidebar (`AISidebar.tsx`)**: When enabled, a subtle vertical glass pill sits on the right edge; clicking it (or pressing `Alt + L`) slides open a sleek glassmorphic AI chat panel supporting streaming responses, clean Markdown rendering, syntax-highlighted code blocks with 1-click Copy, and a Clear Chat button. When disabled, the trigger and sidebar are completely hidden from the UI.
+   - **Weather API**: Optional OpenWeatherMap API key + City override, with an automatic **keyless Open-Meteo fallback** (using browser geolocation or saved city) so weather works out of the box.
+3. **Starred Sites**:
+   - Visual toggle grid of all pre-loaded famous sites + "Add Custom Site" form.
+4. **Mochi & Notifications**:
+   - Master **Enable / Disable Mochi & Notifications** toggle
+   - Do Not Disturb toggle
+   - Mochi Glow Color preset picker
+   - "Send Test Notification" button
+
+---
+
+## 5. MANIFEST V3 ARCHITECTURE & SECURITY
+- **`manifest.json`**:
+  - `manifest_version: 3`
+  - `name: "LUMORA"`
+  - `description: "Atmospheric glassmorphic New Tab workspace with vertical tabs, live media controls, Mochi notifications, and optional Gemini AI."`
+  - `chrome_url_overrides: { "newtab": "index.html" }`
+  - `permissions: ["tabs", "storage", "downloads", "scripting"]`
+  - `host_permissions: ["<all_urls>"]` (strictly for the lightweight media-bridge content script and user-configured weather/Gemini API calls; gracefully ignore restricted `chrome://` and `edge://` pages).
+  - `background: { "service_worker": "src/background/serviceWorker.ts", "type": "module" }`
+- **Privacy & Security**: All API keys and settings are stored strictly in `chrome.storage.local` and never transmitted anywhere except the exact user-configured API endpoints.
+- **Required File Structure**:
+  - `manifest.json`, `package.json`, `vite.config.ts`, `tailwind.config.ts`
+  - `public/fonts/` (font setup + fallback CSS), `public/icons/` (custom minimalist LUMORA SVG/PNG icons)
+  - `src/types/lumora.ts` (strict TypeScript interfaces for settings, tabs, media state, notifications, sites)
+  - `src/store/useLumoraStore.ts` (reactive state synced cleanly with `chrome.storage.local`)
+  - `src/background/serviceWorker.ts` (audible tab tracking, media command relay, `chrome.downloads` notification emitter)
+  - `src/content/mediaBridge.ts` (zero-overhead media state reader & play/pause handler)
+  - `src/data/famousSites.ts` (pre-built catalog with crisp inline SVG brand icons)
+  - `src/components/`:
+    - `HeroDisplay.tsx`
+    - `SearchBar.tsx`
+    - `VerticalTabRail.tsx`
+    - `BottomDock.tsx` (`MediaChip.tsx` + `StarredSitesChip.tsx`)
+    - `MochiNotifications.tsx` (`MochiAvatar.tsx` + `NotificationCard.tsx`)
+    - `AISidebar.tsx`
+    - `SettingsDrawer.tsx`
+
+## 6. DELIVERABLE CONTRACT
+Output the complete, build-ready project structure and every file in full—no ellipses (`...`), no omitted components, and no placeholder handlers—so I can run `npm install && npm run build` and load the `dist/` folder directly into `chrome://extensions` via **Load Unpacked**.

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Lumora icon">
+  <defs>
+    <linearGradient id="bg" x1="12" y1="8" x2="116" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173450"/>
+      <stop offset="0.52" stop-color="#0A192B"/>
+      <stop offset="1" stop-color="#050B14"/>
+    </linearGradient>
+    <linearGradient id="moon" x1="45" y1="30" x2="91" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#CDEBFF"/>
+      <stop offset="1" stop-color="#77B7E8"/>
+    </linearGradient>
+    <linearGradient id="horizon" x1="28" y1="91" x2="101" y2="91" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#77B7E8" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#D8F2FF"/>
+      <stop offset="1" stop-color="#77B7E8" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop stop-color="#A9DCFF" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#A9DCFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#bg)" stroke="#D8F2FF" stroke-opacity="0.22" stroke-width="2"/>
+  <circle cx="65" cy="58" r="48" fill="url(#halo)"/>
+  <path d="M72 28c-17 3-29 18-29 36 0 20 15 36 35 37-7-7-11-17-11-28 0-19 13-34 30-38-7-4-16-7-25-7Z" fill="url(#moon)" filter="url(#glow)"/>
+  <path d="M26 91h76" stroke="url(#horizon)" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="94" cy="35" r="3" fill="#E9F8FF"/>
+  <circle cx="34" cy="48" r="1.8" fill="#B9DCFF" opacity="0.8"/>
+</svg>
