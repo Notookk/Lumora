@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Volume2, VolumeX, X } from 'lucide-react';
+import { Pin, Plus, Volume2, VolumeX, X } from 'lucide-react';
 import { activateTab, closeTab, createTab } from '../lib/browser';
 import type { BrowserTab } from '../types/lumora';
 
@@ -10,9 +10,9 @@ function TabFavicon({ tab }: { tab: BrowserTab }) {
   return (
     <span className="tab-favicon" aria-hidden="true">
       {tab.favicon && !failed ? (
-        <img src={tab.favicon} alt="" onError={() => setFailed(true)} />
+        <img src={tab.favicon} alt="" decoding="async" onError={() => setFailed(true)} />
       ) : (
-        <span>{tab.title.trim().charAt(0).toUpperCase() || '•'}</span>
+        <span>{Array.from(tab.title.trim())[0]?.toUpperCase() || '•'}</span>
       )}
     </span>
   );
@@ -21,7 +21,11 @@ function TabFavicon({ tab }: { tab: BrowserTab }) {
 export default function VerticalTabRail({ tabs }: { tabs: BrowserTab[] }) {
   return (
     <aside className="tab-rail" aria-label="Open tabs">
-      <div className="tab-rail-inner glass-panel">
+      <div className="tab-rail-inner">
+        <div className="tab-rail-header">
+          <span className="tab-rail-grip" aria-hidden="true" />
+          <span className="tab-rail-heading">Open tabs <span className="tab-rail-count">{tabs.length}</span></span>
+        </div>
         <div className="tab-rail-list">
           {tabs.map((tab) => (
             <div className={`tab-row ${tab.active ? 'is-active' : ''}`} key={tab.id}>
@@ -38,9 +42,11 @@ export default function VerticalTabRail({ tabs }: { tabs: BrowserTab[] }) {
                 }}
                 title={tab.title}
                 aria-label={`Switch to ${tab.title}`}
+                aria-current={tab.active ? 'page' : undefined}
               >
                 <TabFavicon tab={tab} />
                 <span className="tab-title">{tab.title}</span>
+                {tab.pinned && <Pin className="tab-pin" size={11} strokeWidth={1.7} aria-label="Pinned" />}
                 {tab.audible && !tab.muted && <Volume2 className="tab-audio" size={13} strokeWidth={1.7} aria-label="Playing audio" />}
                 {tab.muted && <VolumeX className="tab-audio is-muted" size={13} strokeWidth={1.7} aria-label="Muted" />}
               </button>
@@ -50,10 +56,12 @@ export default function VerticalTabRail({ tabs }: { tabs: BrowserTab[] }) {
             </div>
           ))}
         </div>
-        <button type="button" className="new-tab-button" onClick={() => void createTab()} aria-label="New tab" title="New tab">
-          <Plus size={18} strokeWidth={1.6} />
-          <span>New Tab</span>
-        </button>
+        <div className="tab-rail-footer">
+          <button type="button" className="new-tab-button" onClick={() => void createTab()} aria-label="New tab" title="New tab">
+            <Plus size={18} strokeWidth={1.6} />
+            <span>New tab</span>
+          </button>
+        </div>
       </div>
     </aside>
   );

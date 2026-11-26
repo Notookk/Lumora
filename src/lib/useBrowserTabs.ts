@@ -14,8 +14,8 @@ export const useBrowserTabs = () => {
     void refresh();
     if (!isExtension()) return;
 
-    const listener = (message: { type?: string; tabs?: BrowserTab[] }) => {
-      if (message.type === 'LUMORA_TABS_CHANGED' && message.tabs) setTabs(message.tabs);
+    const listener = (message: { type?: string }) => {
+      if (message.type === 'LUMORA_TABS_CHANGED') void refresh();
     };
     chrome.runtime.onMessage.addListener(listener);
     return () => chrome.runtime.onMessage.removeListener(listener);

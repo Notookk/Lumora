@@ -104,27 +104,73 @@ try {
   await delay(1200);
   await evaluate('document.fonts.ready');
 
-  const initial = await evaluate(`(() => ({
-    title: document.title,
-    width: innerWidth,
-    height: innerHeight,
-    tabRows: document.querySelectorAll('.tab-row').length,
-    railDisplay: getComputedStyle(document.querySelector('.tab-rail')).display,
-    searchWidth: Math.round(document.querySelector('.search-bar').getBoundingClientRect().width),
-    hero: document.querySelector('.hero-wordmark')?.textContent,
-    mochi: Boolean(document.querySelector('.mochi-avatar')),
-    media: Boolean(document.querySelector('.dock-chip')),
-    overflow: document.documentElement.scrollWidth > innerWidth,
-  }))()`);
+  const initial = await evaluate(`(() => {
+    const rail = document.querySelector('.tab-rail').getBoundingClientRect();
+    return {
+      title: document.title,
+      width: innerWidth,
+      height: innerHeight,
+      tabRows: document.querySelectorAll('.tab-row').length,
+      railDisplay: getComputedStyle(document.querySelector('.tab-rail')).display,
+      railWidth: Math.round(rail.width),
+      railHeight: Math.round(rail.height),
+      railTop: Math.round(rail.top),
+      railBottom: Math.round(rail.bottom),
+      searchWidth: Math.round(document.querySelector('.search-bar').getBoundingClientRect().width),
+      hero: document.querySelector('.hero-wordmark')?.textContent,
+      mochi: Boolean(document.querySelector('.mochi-avatar')),
+      media: Boolean(document.querySelector('.dock-chip')),
+      overflow: document.documentElement.scrollWidth > innerWidth,
+    };
+  })()`);
   if (initial.tabRows !== 4 || initial.railDisplay === 'none') throw new Error(`Desktop tab rail check failed: ${JSON.stringify(initial)}`);
+  if (initial.railWidth !== 56 || initial.railHeight > initial.height * 0.65) throw new Error(`Collapsed rail geometry is invalid: ${JSON.stringify(initial)}`);
+  if (initial.railTop < 0 || initial.railBottom > initial.height) throw new Error('Tab rail extends beyond the viewport.');
   if (initial.overflow) throw new Error('Desktop layout has horizontal overflow.');
 
-  const railTarget = await evaluate(`(() => { const rect = document.querySelector('.tab-main').getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()`);
+  const railTarget = await evaluate(`(() => { const rect = document.querySelector('.tab-favicon').getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()`);
   await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...railTarget });
-  await delay(550);
+  await delay(450);
   const expandedOpacity = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
   if (Number(expandedOpacity) < 0.9) throw new Error(`Tab rail did not expand: ${expandedOpacity}`);
 
+  const rowGap = await evaluate(`(() => { const rows = [...document.querySelectorAll('.tab-row')]; const first = rows[0].getBoundingClientRect(); const second = rows[1].getBoundingClientRect(); return { x: first.left + 130, y: (first.bottom + second.top) / 2 }; })()`);
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...rowGap });
+  await delay(350);
+  const gapHover = await evaluate(`(() => ({ hovering: document.querySelector('.tab-rail').matches(':hover'), opacity: getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity }))()`);
+  if (!gapHover.hovering || Number(gapHover.opacity) < 0.9) throw new Error(`Rail collapsed while crossing a row gap: ${JSON.stringify(gapHover)}`);
+
+  const gapCloseStates = await evaluate(`[...document.querySelectorAll('.tab-close')].map((element) => Number(getComputedStyle(element).opacity))`);
+  if (gapCloseStates.some((opacity) => opacity > 0.1)) throw new Error(`Close controls remain visible in a row gap: ${gapCloseStates.join(',')}`);
+
+  const secondFavicon = await evaluate(`(() => { const rect = document.querySelectorAll('.tab-favicon')[1].getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()`);
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...secondFavicon });
+  await delay(300);
+  const hoveredCloseStates = await evaluate(`[...document.querySelectorAll('.tab-close')].map((element) => Number(getComputedStyle(element).opacity))`);
+  if (hoveredCloseStates[0] > 0.1 || hoveredCloseStates[1] < 0.9) throw new Error(`Hovered close state is incorrect: ${hoveredCloseStates.join(',')}`);
+
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 700, y: 420 });
+  await delay(450);
+  const collapsedOpacity = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
+  if (Number(collapsedOpacity) > 0.1) throw new Error('Rail did not collapse after the pointer left.');
+  await evaluate(`document.querySelector('.tab-main').focus()`);
+  await delay(350);
+  const keyboardExpanded = await evaluate(`getComputedStyle(document.querySelector('.tab-rail-inner'), '::after').opacity`);
+  if (Number(keyboardExpanded) < 0.9) throw new Error('Keyboard focus did not expand the rail.');
+  await evaluate(`document.activeElement.blur()`);
+
+  await send('Emulation.setDeviceMetricsOverride', { width: 768, height: 700, deviceScaleFactor: 1, mobile: false });
+  await delay(300);
+  const tabletRail = await evaluate(`({ display: getComputedStyle(document.querySelector('.tab-rail')).display, overflow: document.documentElement.scrollWidth > innerWidth })`);
+  if (tabletRail.display === 'none' || tabletRail.overflow) throw new Error(`Tablet rail layout failed: ${JSON.stringify(tabletRail)}`);
+  await send('Emulation.setDeviceMetricsOverride', { width: 632, height: 616, deviceScaleFactor: 1, mobile: false });
+  await delay(300);
+  const compactRailDisplay = await evaluate(`getComputedStyle(document.querySelector('.tab-rail')).display`);
+  if (compactRailDisplay !== 'none') throw new Error('Compact layout should hide the desktop tab rail.');
+
+  await send('Emulation.setDeviceMetricsOverride', { width: 1440, height: 900, deviceScaleFactor: 1, mobile: false });
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...railTarget });
+  await delay(450);
   const screenshot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
   await writeFile(resolve(root, 'docs/assets/lumora-desktop.png'), Buffer.from(screenshot.data, 'base64'));
 
@@ -134,7 +180,7 @@ try {
   if (!settingsOpen) throw new Error('Settings drawer did not open.');
   if (exceptions.length) throw new Error(`Browser exceptions: ${exceptions.join(' | ')}`);
 
-  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, settingsOpen, browserExceptions: exceptions.length }, null, 2));
+  console.log(JSON.stringify({ ...initial, railExpandedOpacity: expandedOpacity, gapHoverPersistent: gapHover.hovering, keyboardExpanded: Number(keyboardExpanded) >= 0.9, tabletRail, compactRailDisplay, settingsOpen, browserExceptions: exceptions.length }, null, 2));
 } finally {
   try { socket?.close(); } catch {}
   child.kill();

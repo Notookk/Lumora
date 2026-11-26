@@ -33,7 +33,7 @@ export const runtimeRequest = async <T,>(message: RuntimeMessage): Promise<T | n
 
 export const getBrowserTabs = async (): Promise<BrowserTab[]> => {
   if (!isExtension()) return demoTabs;
-  const tabs = await chrome.tabs.query({});
+  const tabs = await chrome.tabs.query({ currentWindow: true });
   return tabs.map((tab, index) => ({
     id: tab.id ?? -1,
     title: tab.title ?? 'Untitled',
